@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-webroot
+data:
+{{- range $path, $_ :=  .Files.Glob  "webroot/**" }}
+  {{ $path | base }}: |
+{{ $.Files.Get $path | indent 4}}
+{{ end }}

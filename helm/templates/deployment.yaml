@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "argodemo.fullname" . }}
+  labels:
+    {{- include "argodemo.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "argodemo.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "argodemo.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /var/cache/nginx/client_temp
+              name: client-temp
+            - mountPath: /var/cache/nginx/proxy_temp
+              name: proxy-temp
+            - mountPath: /var/cache/nginx/fastcgi_temp
+              name: fastcgi-temp
+            - mountPath: /var/cache/nginx/uwsgi_temp
+              name: uwsgi-temp
+            - mountPath: /var/cache/nginx/scgi_temp
+              name: scgi-temp
+            - mountPath: /var/run/
+              name: var-run
+            - mountPath: /etc/nginx/conf.d/
+              name: sites
+            - mountPath: /usr/share/nginx/html
+              name: webroot
+      volumes:
+        - name: client-temp
+          emptyDir: {}
+        - name: proxy-temp
+          emptyDir: {}
+        - name: fastcgi-temp
+          emptyDir: {}
+        - name: uwsgi-temp
+          emptyDir: {}
+        - name: scgi-temp
+          emptyDir: {}
+        - name: var-run
+          emptyDir: {}
+        - name: sites
+          configMap:
+            name: nginx-config
+        - name: webroot
+          configMap:
+            name: nginx-webroot
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
