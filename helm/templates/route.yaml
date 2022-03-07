@@ -1,0 +1,21 @@
+{{- if .Values.route.enabled -}}
+{{- $fullName := include "argodemo.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "argodemo.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  #host: hello-openshift-hello-openshift.<Ingress_Domain>
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: {{ include "argodemo.fullname" . }}
+{{- end }}
