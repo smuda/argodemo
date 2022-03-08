@@ -7,3 +7,19 @@ data:
   {{ $path | base }}: |
 {{ $.Files.Get $path | indent 4}}
 {{ end }}
+  index.html: |
+    <html>
+    <head>
+        <title>Welcome to the {{ .Values.color }}!</title>
+        <style>
+            body {
+                width: 35em;
+                margin: 0 auto;
+                font-family: Tahoma, Verdana, Arial, sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Welcome to the {{ .Values.color }}!</h1>
+    </body>
+    </html>
